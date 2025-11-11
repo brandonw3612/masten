@@ -6,7 +6,7 @@ import mast.utils as utils
 
 parser = Parser(Language(tree_sitter_imp.language()))
 
-with open('tests/imp/eg1.imp', 'r') as f:
+with open('examples/imp/eg1.imp', 'r') as f:
     src = f.read()
     ts_tree = parser.parse(bytes(src, encoding='utf-8'))
     tree = imp.Program.from_tree_sitter(ts_tree)
