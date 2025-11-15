@@ -7,7 +7,7 @@ from uuid import uuid4
 from tree_sitter import Node as TNode
 from tree_sitter import Tree
 
-from mast import Corruption
+from mast import TransitionKernels
 from mast.container import LabeledContainer, ChildrenContainer
 
 
@@ -41,31 +41,31 @@ class AbstractNode(ABC):
         return 'Node'
 
     @classmethod
-    def get_supported_corruptions(cls) -> list[Corruption]:
-        corruptions = list[Corruption]()
+    def get_supported_transition_kernels(cls) -> set[TransitionKernels]:
+        tks = set[TransitionKernels]()
         if hasattr(cls, 'mask'):
-            corruptions.append(Corruption.MASK)
+            tks.add(TransitionKernels.MASK)
         if hasattr(cls, 'unmask'):
-            corruptions.append(Corruption.UNMASK)
+            tks.add(TransitionKernels.UNMASK)
         if hasattr(cls, 'mask_up'):
-            corruptions.append(Corruption.MASK_UP)
+            tks.add(TransitionKernels.MASK_UP)
         if hasattr(cls, 'mask_down'):
-            corruptions.append(Corruption.MASK_DOWN)
+            tks.add(TransitionKernels.MASK_DOWN)
         if hasattr(cls, 'binop_swap'):
-            corruptions.append(Corruption.BINOP_SWAP)
-        return corruptions
+            tks.add(TransitionKernels.BINOP_SWAP)
+        return tks
 
-    def corrupt(self, crpt: Corruption, args: list[Any]):
-        if crpt == Corruption.MASK and hasattr(self, 'mask'):
-            self.mask()
-        elif crpt == Corruption.UNMASK and hasattr(self, 'unmask'):
-            if len(args) != 1:
-                raise ValueError('UNMASK requires one argument: the concrete node to unmask to.')
-            self.unmask(args[0])
-        elif crpt == Corruption.BINOP_SWAP and hasattr(self, 'binop_swap'):
-            self.binop_swap()
-        else:
-            raise ValueError(f'Corruption {crpt} not supported for node type {self.get_type_name()}.')
+    # def corrupt(self, tk: TransitionKernels, args: list[Any]):
+    #     if tk == TransitionKernels.MASK and hasattr(self, 'mask'):
+    #         self.mask()
+    #     elif tk == TransitionKernels.UNMASK and hasattr(self, 'unmask'):
+    #         if len(args) != 1:
+    #             raise ValueError('UNMASK requires one argument: the concrete node to unmask to.')
+    #         self.unmask(args[0])
+    #     elif tk == TransitionKernels.BINOP_SWAP and hasattr(self, 'binop_swap'):
+    #         self.binop_swap()
+    #     else:
+    #         raise ValueError(f'Transition kernel {tk} not supported for node type {self.get_type_name()}.')
 
 
 class ConcreteNode(AbstractNode):
