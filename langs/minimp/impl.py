@@ -6,16 +6,19 @@ from typing import Any
 from tree_sitter import Node as TNode
 
 import mast.attr as attr
-import mast.behavior as behavior
+import mast.transition_kernel as tk
+from mast import Terminal
 from mast.container import LabeledContainer
 from mast.node import ConcreteNode, AbstractNode, RootNode
 
 import langs.minimp.base as base
+import langs.minimp.mask as mask
 
 
-@attr.root_node()
+@attr.is_root_node()
 @attr.node_type_name('Program')
 @attr.tree_sitter_rule('source_file')
+@attr.is_non_terminal_node([mask.AExprMask])
 class Program(ConcreteNode, RootNode, base.ProgramBase):
     def __init__(self, body: base.AExprBase):
         super().__init__()
@@ -62,6 +65,7 @@ class AExpr(ConcreteNode, base.AExprBase):
 
 @attr.node_type_name('Id')
 @attr.tree_sitter_rule('id')
+@attr.is_terminal_node(Terminal.IDENTIFIER)
 class Identifier(ConcreteNode, base.IdentifierBase):
     def __init__(self, name: str):
         super().__init__()
@@ -83,6 +87,7 @@ class Identifier(ConcreteNode, base.IdentifierBase):
 
 @attr.node_type_name('Int')
 @attr.tree_sitter_rule('int')
+@attr.is_terminal_node(Terminal.NUMBER)
 class IntLiteral(ConcreteNode, base.IntLiteralBase):
     def __init__(self, value: int):
         super().__init__()
@@ -104,7 +109,8 @@ class IntLiteral(ConcreteNode, base.IntLiteralBase):
 
 @attr.node_type_name('Div.Exp.')
 @attr.tree_sitter_rule('div_exp')
-@behavior.can_binop_swap('left', 'right')
+@tk.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.AExprMask, mask.AExprMask])
 class DivExpr(ConcreteNode, base.DivExprBase):
     def __init__(self, left: base.AExprBase, right: base.AExprBase):
         super().__init__()
@@ -136,7 +142,8 @@ class DivExpr(ConcreteNode, base.DivExprBase):
 
 @attr.node_type_name('Add.Exp.')
 @attr.tree_sitter_rule('add_exp')
-@behavior.can_binop_swap('left', 'right')
+@tk.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.AExprMask, mask.AExprMask])
 class AddExpr(ConcreteNode, base.AddExprBase):
     def __init__(self, left: base.AExprBase, right: base.AExprBase):
         super().__init__()
@@ -168,6 +175,7 @@ class AddExpr(ConcreteNode, base.AddExprBase):
 
 @attr.node_type_name('Brc.A.Exp.')
 @attr.tree_sitter_rule('brc_a_exp')
+@attr.is_non_terminal_node([mask.AExprMask])
 class BracketedAExpr(ConcreteNode, base.BracketedAExprBase):
     def __init__(self, expr: base.AExprBase):
         super().__init__()

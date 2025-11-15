@@ -6,16 +6,19 @@ from typing import Any
 from tree_sitter import Node as TNode
 
 import mast.attr as attr
-import mast.behavior as behavior
+import mast.transition_kernel as behavior
+from mast import Terminal
 from mast.container import LabeledContainer, ChildrenContainer
 from mast.node import ConcreteNode, AbstractNode, RootNode
 
 import langs.imp.base as base
+import langs.imp.mask as mask
 
 
-@attr.root_node()
+@attr.is_root_node()
 @attr.node_type_name('Program')
 @attr.tree_sitter_rule('source_file')
+@attr.is_non_terminal_node([mask.AExprMask])
 class Program(ConcreteNode, RootNode, base.ProgramBase):
     def __init__(self, body: base.StmtBase):
         super().__init__()
@@ -56,6 +59,7 @@ class AExpr(ConcreteNode, base.AExprBase):
 
 @attr.node_type_name('Id')
 @attr.tree_sitter_rule('id')
+@attr.is_terminal_node(Terminal.IDENTIFIER)
 class Identifier(ConcreteNode, base.IdentifierBase):
     def __init__(self, name: str):
         super().__init__()
@@ -77,6 +81,7 @@ class Identifier(ConcreteNode, base.IdentifierBase):
 
 @attr.node_type_name('Int')
 @attr.tree_sitter_rule('int')
+@attr.is_terminal_node(Terminal.NUMBER)
 class IntLiteral(ConcreteNode, base.IntLiteralBase):
     def __init__(self, value: int):
         super().__init__()
@@ -99,6 +104,7 @@ class IntLiteral(ConcreteNode, base.IntLiteralBase):
 @attr.node_type_name('Div.Exp.')
 @attr.tree_sitter_rule('div_exp')
 @behavior.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.AExprMask, mask.AExprMask])
 class DivExpr(ConcreteNode, base.DivExprBase):
     def __init__(self, left: base.AExprBase, right: base.AExprBase):
         super().__init__()
@@ -131,6 +137,7 @@ class DivExpr(ConcreteNode, base.DivExprBase):
 @attr.node_type_name('Add.Exp.')
 @attr.tree_sitter_rule('add_exp')
 @behavior.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.AExprMask, mask.AExprMask])
 class AddExpr(ConcreteNode, base.AddExprBase):
     def __init__(self, left: base.AExprBase, right: base.AExprBase):
         super().__init__()
@@ -162,6 +169,7 @@ class AddExpr(ConcreteNode, base.AddExprBase):
 
 @attr.node_type_name('Brc.A.Exp.')
 @attr.tree_sitter_rule('brc_a_exp')
+@attr.is_non_terminal_node([mask.AExprMask])
 class BracketedAExpr(ConcreteNode, base.BracketedAExprBase):
     def __init__(self, expr: base.AExprBase):
         super().__init__()
@@ -202,6 +210,7 @@ class BExpr(ConcreteNode, base.BExprBase):
 
 @attr.node_type_name('Bool')
 @attr.tree_sitter_rule('bool')
+# TODO: Terminal type not defined yet
 class BoolLiteral(ConcreteNode, base.BoolLiteralBase):
     def __init__(self, value: int):
         super().__init__()
@@ -228,6 +237,7 @@ class BoolLiteral(ConcreteNode, base.BoolLiteralBase):
 @attr.node_type_name('L.Eq.Exp.')
 @attr.tree_sitter_rule('leq_exp')
 @behavior.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.BExprMask, mask.BExprMask])
 class LeqExpr(ConcreteNode, base.LeqExprBase):
     def __init__(self, left: base.AExprBase, right: base.AExprBase):
         super().__init__()
@@ -259,6 +269,7 @@ class LeqExpr(ConcreteNode, base.LeqExprBase):
 
 @attr.node_type_name('Not.Exp.')
 @attr.tree_sitter_rule('not_exp')
+@attr.is_non_terminal_node([mask.BExprMask])
 class NotExpr(ConcreteNode, base.NotExprBase):
     def __init__(self, expr: base.BExprBase):
         super().__init__()
@@ -285,6 +296,7 @@ class NotExpr(ConcreteNode, base.NotExprBase):
 @attr.node_type_name("L.And.Exp.")
 @attr.tree_sitter_rule('land_exp')
 @behavior.can_binop_swap('left', 'right')
+@attr.is_non_terminal_node([mask.BExprMask])
 class LandExpr(ConcreteNode, base.LandExprBase):
     def __init__(self, left: base.BExprBase, right: base.BExprBase):
         super().__init__()
@@ -316,6 +328,7 @@ class LandExpr(ConcreteNode, base.LandExprBase):
 
 @attr.node_type_name('Brc.B.Exp.')
 @attr.tree_sitter_rule('brc_b_exp')
+@attr.is_non_terminal_node([mask.BExprMask])
 class BracketedBExpr(ConcreteNode, base.BracketedBExprBase):
     def __init__(self, expr: base.BExprBase):
         super().__init__()
@@ -356,6 +369,7 @@ class Stmt(ConcreteNode, base.StmtBase):
 
 @attr.node_type_name('Asn.Stmt.')
 @attr.tree_sitter_rule('asn_stmt')
+@attr.is_non_terminal_node([mask.IdentifierMask, mask.StmtMask])
 class AsnStmt(ConcreteNode, base.AsnStmtBase):
     def __init__(self, target: base.IdentifierBase, expr: base.AExprBase):
         super().__init__()
@@ -387,6 +401,7 @@ class AsnStmt(ConcreteNode, base.AsnStmtBase):
 
 @attr.node_type_name('If.Stmt.')
 @attr.tree_sitter_rule('if_stmt')
+@attr.is_non_terminal_node([mask.BExprMask, mask.StmtMask, mask.StmtMask])
 class IfStmt(ConcreteNode, base.IfStmtBase):
     def __init__(self, cond: base.BExprBase, body: base.StmtBase, else_body: base.StmtBase):
         super().__init__()
@@ -435,6 +450,7 @@ class IfStmt(ConcreteNode, base.IfStmtBase):
 
 @attr.node_type_name('While Stmt.')
 @attr.tree_sitter_rule('while_stmt')
+@attr.is_non_terminal_node([mask.BExprMask, mask.StmtMask])
 class WhileStmt(ConcreteNode, base.WhileStmtBase):
     def __init__(self, cond: base.BExprBase, body: base.StmtBase):
         super().__init__()
@@ -472,6 +488,7 @@ class WhileStmt(ConcreteNode, base.WhileStmtBase):
 
 @attr.node_type_name('Block')
 @attr.tree_sitter_rule('block')
+# TODO: How to decorrupt a block?
 class Block(ConcreteNode, base.BlockBase):
     def __init__(self, stmts: list[Stmt]):
         super().__init__()
