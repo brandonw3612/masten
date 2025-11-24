@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from mast.node import MaskedNode, ConcreteNode
+from mast.node import MaskedNode
 
 
 class Decorruptor(ABC):

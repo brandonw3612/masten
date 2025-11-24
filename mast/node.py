@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Type
+from typing import Any
 from uuid import uuid4
 
 from tree_sitter import Node as TNode
@@ -31,6 +31,10 @@ class AbstractNode(ABC):
     # @abstractmethod
     # def corrupt(self, crp: Corruption, args: list[Any]):
     #     pass
+
+    @abstractmethod
+    def to_tokens(self) -> list[str]:
+        pass
 
     @abstractmethod
     def to_source(self) -> str:
@@ -86,6 +90,9 @@ class MaskedNode(AbstractNode):
 
     def get_type_name(self) -> str:
         return f'{self._node_type.__name__} MASK'
+
+    def to_tokens(self) -> list[str]:
+        return ['<MASK>']
 
     def to_source(self) -> str:
         return f'[{self._node_type.__name__} MASK]'

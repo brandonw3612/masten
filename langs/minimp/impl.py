@@ -36,6 +36,9 @@ class Program(ConcreteNode, RootNode, base.ProgramBase):
     def body(self) -> AExpr:
         return self.subtrees['body']
 
+    def to_tokens(self) -> list[str]:
+        return self.body().to_tokens()
+
     def to_source(self) -> str:
         return self.body().to_source()
 
@@ -81,6 +84,9 @@ class Identifier(ConcreteNode, base.IdentifierBase):
     def name(self):
         return self.attributes['name']
 
+    def to_tokens(self) -> list[str]:
+        return [self.name()]
+
     def to_source(self) -> str:
         return self.name()
 
@@ -102,6 +108,9 @@ class IntLiteral(ConcreteNode, base.IntLiteralBase):
 
     def value(self):
         return self.attributes['value']
+
+    def to_tokens(self) -> list[str]:
+        return [str(self.value())]
 
     def to_source(self) -> str:
         return str(self.value())
@@ -136,6 +145,9 @@ class DivExpr(ConcreteNode, base.DivExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['/'] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} / {self.right().to_source()}'
 
@@ -169,6 +181,9 @@ class AddExpr(ConcreteNode, base.AddExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['+'] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} + {self.right().to_source()}'
 
@@ -194,6 +209,9 @@ class BracketedAExpr(ConcreteNode, base.BracketedAExprBase):
 
     def expr(self):
         return self.subtrees['expr']
+
+    def to_tokens(self) -> list[str]:
+        return ['('] + self.expr().to_tokens() + [')']
 
     def to_source(self) -> str:
         return f'({self.expr().to_source()})'

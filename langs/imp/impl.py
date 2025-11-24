@@ -38,6 +38,9 @@ class Program(ConcreteNode, RootNode, base.ProgramBase):
     def body(self) -> AExpr:
         return self.subtrees['body']
 
+    def to_tokens(self) -> list[str]:
+        return self.body().to_tokens()
+
     def to_source(self) -> str:
         return self.body().to_source()
 
@@ -75,6 +78,9 @@ class Identifier(ConcreteNode, base.IdentifierBase):
     def name(self):
         return self.attributes['name']
 
+    def to_tokens(self) -> list[str]:
+        return [self.name()]
+
     def to_source(self) -> str:
         return self.name()
 
@@ -96,6 +102,9 @@ class IntLiteral(ConcreteNode, base.IntLiteralBase):
 
     def value(self):
         return self.attributes['value']
+
+    def to_tokens(self) -> list[str]:
+        return [str(self.value())]
 
     def to_source(self) -> str:
         return str(self.value())
@@ -130,6 +139,9 @@ class DivExpr(ConcreteNode, base.DivExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['/'] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} / {self.right().to_source()}'
 
@@ -163,6 +175,9 @@ class AddExpr(ConcreteNode, base.AddExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['+'] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} + {self.right().to_source()}'
 
@@ -188,6 +203,9 @@ class BracketedAExpr(ConcreteNode, base.BracketedAExprBase):
 
     def expr(self):
         return self.subtrees['expr']
+
+    def to_tokens(self) -> list[str]:
+        return ['('] + self.expr().to_tokens() + [')']
 
     def to_source(self) -> str:
         return f'({self.expr().to_source()})'
@@ -230,6 +248,9 @@ class BoolLiteral(ConcreteNode, base.BoolLiteralBase):
     def value(self):
         return self.attributes['value']
 
+    def to_tokens(self) -> list[str]:
+        return [str(self.value()).lower()]
+
     def to_source(self) -> str:
         return str(self.value())
 
@@ -263,6 +284,9 @@ class LeqExpr(ConcreteNode, base.LeqExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['<='] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} <= {self.right().to_source()}'
 
@@ -288,6 +312,9 @@ class NotExpr(ConcreteNode, base.NotExprBase):
 
     def expr(self):
         return self.subtrees['expr']
+
+    def to_tokens(self) -> list[str]:
+        return ['!'] + self.expr().to_tokens()
 
     def to_source(self) -> str:
         return f'!({self.expr().to_source()})'
@@ -322,6 +349,9 @@ class LandExpr(ConcreteNode, base.LandExprBase):
     def right(self):
         return self.subtrees['right']
 
+    def to_tokens(self) -> list[str]:
+        return self.left().to_tokens() + ['&&'] + self.right().to_tokens()
+
     def to_source(self) -> str:
         return f'{self.left().to_source()} <= {self.right().to_source()}'
 
@@ -347,6 +377,9 @@ class BracketedBExpr(ConcreteNode, base.BracketedBExprBase):
 
     def expr(self):
         return self.subtrees['expr']
+
+    def to_tokens(self) -> list[str]:
+        return ['('] + self.expr().to_tokens() + [')']
 
     def to_source(self) -> str:
         return f'({self.expr().to_source()})'
@@ -395,6 +428,9 @@ class AsnStmt(ConcreteNode, base.AsnStmtBase):
     def expr(self):
         return self.subtrees['expr']
 
+    def to_tokens(self) -> list[str]:
+        return self.target().to_tokens() + ['='] + self.expr().to_tokens() + [';']
+
     def to_source(self) -> str:
         return f'{self.target().to_source()} = {self.expr().to_source()};\n'
 
@@ -432,6 +468,19 @@ class IfStmt(ConcreteNode, base.IfStmtBase):
 
     def else_body(self):
         return self.subtrees['else_body']
+
+    def to_tokens(self) -> list[str]:
+        tokens = ['if', '(', *self.cond().to_tokens(), ')']
+        if isinstance(self.body(), base.BlockBase):
+            tokens += self.body().to_tokens()
+        else:
+            tokens += ['{'] + self.body().to_tokens() + ['}']
+        tokens += ['else']
+        if isinstance(self.else_body(), base.BlockBase):
+            tokens += self.else_body().to_tokens()
+        else:
+            tokens += ['{'] + self.else_body().to_tokens() + ['}']
+        return tokens
 
     def to_source(self) -> str:
         s = f'if ({self.cond().to_source()}) '
@@ -476,6 +525,14 @@ class WhileStmt(ConcreteNode, base.WhileStmtBase):
     def body(self):
         return self.subtrees['body']
 
+    def to_tokens(self) -> list[str]:
+        tokens = ['while', '(', *self.cond().to_tokens(), ')']
+        if isinstance(self.body(), base.BlockBase):
+            tokens += self.body().to_tokens()
+        else:
+            tokens += ['{'] + self.body().to_tokens() + ['}']
+        return tokens
+
     def to_source(self) -> str:
         s = f'while ({self.cond().to_source()}) '
         if isinstance(self.body(), base.BlockBase):
@@ -511,6 +568,13 @@ class Block(ConcreteNode, base.BlockBase):
 
     def child(self, i: int):
         return self.subtrees[i]
+
+    def to_tokens(self) -> list[str]:
+        tokens = ['{']
+        for stmt in self.subtrees:
+            tokens += stmt.to_tokens()
+        tokens += ['}']
+        return tokens
 
     def to_source(self) -> str:
         return '{\n' + ''.join(stmt.to_source() for stmt in self.subtrees) + '}'
