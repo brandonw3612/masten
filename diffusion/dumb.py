@@ -86,11 +86,16 @@ class DumbDecorruptor(Decorruptor):
 
 
 class DumbTerminalGenerator(TerminalGenerator):
+    def __init__(self, alphabet: str = string.ascii_lowercase, integer_range: tuple[int, int] = (0, 10)):
+        self.alphabet = alphabet
+        self.integer_range = integer_range
+
     def generate(self, ctx: Any, task_type: Terminal) -> Any:
         if task_type == Terminal.IDENTIFIER:
-            return random.choice(string.ascii_lowercase)
+            return random.choice(self.alphabet)
         if task_type == Terminal.STRING:
-            return random.choice(string.ascii_lowercase)
+            return random.choice(self.alphabet)
         if task_type == Terminal.NUMBER:
-            return random.randint(0, 100)
+            l, u = self.integer_range
+            return random.randint(l, u)
         raise ValueError(f'Unsupported terminal type: {task_type}')
