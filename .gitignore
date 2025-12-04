@@ -1,5 +1,8 @@
 .idea/
 bpw/
+models/
+datasets/
+logs/
 
 parsers/*
 !parsers/*.js
