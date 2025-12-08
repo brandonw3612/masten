@@ -81,7 +81,7 @@ def sample_dataset(
         body = minimp.AExprMask()
         program = minimp.Program(body)
         dd.decorrupt(body)
-        fix(program)
+        # fix(program)
         if min_depth > depth(program) or depth(program) > max_depth:
             continue
         raw_programs.append(program)

@@ -47,12 +47,12 @@ def train_one_batch(
     ce_loss_raw = loss_fct(logits.view(-1, model.head.out_features), x_start.view(-1))
     ce_loss_raw = ce_loss_raw.view(B, L)
 
-    # pad_tid = tokenizer.token_to_index[PreservedTokens.PAD]
-    # eos_tid = tokenizer.token_to_index[PreservedTokens.EOS]
-    # weights = torch.ones_like(ce_loss_raw)
-    # weights[x_start == eos_tid] = 2.0
-    # weights[x_start == pad_tid] = 0.5
-    # ce_loss_raw = ce_loss_raw * weights
+    pad_tid = tokenizer.token_to_index[PreservedTokens.PAD]
+    eos_tid = tokenizer.token_to_index[PreservedTokens.EOS]
+    weights = torch.ones_like(ce_loss_raw)
+    weights[x_start == eos_tid] = 0.2
+    weights[x_start == pad_tid] = 0.2
+    ce_loss_raw = ce_loss_raw * weights
 
     # average loss only on masked positions
     masked_ce_loss = (ce_loss_raw * mask_indices.float()).sum() / (mask_indices.sum() + 1e-6)
@@ -83,7 +83,7 @@ def train(
 
     if os.path.exists(model_checkpoint_path):
         loaded_epoch = load_model_checkpoint_for_training(model_checkpoint_path, model, device, optimizer)
-        start_epoch = loaded_epoch + 1
+        start_epoch = loaded_epoch
 
     for epoch in range(start_epoch, epochs):
         total_loss = 0
@@ -96,7 +96,7 @@ def train(
         print(f"\n======== Epoch {epoch + 1} completed. Average Loss: {avg_loss:.4f}\n")
 
         # Save checkpoint
-        if (epoch + 1) % 1000 == 0:
+        if (epoch + 1) % 5 == 0:
             save_model_checkpoint(model, optimizer, dataset.tokenizer, epoch, model_checkpoint_path + f'x{epoch + 1}ep')
 
     save_model_checkpoint(model, optimizer, dataset.tokenizer, epochs, model_checkpoint_path + f'x{epochs}ep_final')

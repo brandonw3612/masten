@@ -30,5 +30,5 @@ if __name__ == '__main__':
         else:
             comment = ' (No EOS)'
             noeos += 1
-        print(f"Generated Program {i + 1}: {str.join(' ', prog)}{comment}")
+        print(f"#{i + 1}: {str.join(' ', prog)}{comment}")
     print(f"Valid: {valid} / Other Tokens: {othto} / No EOS: {noeos}")
