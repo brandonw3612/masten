@@ -70,12 +70,13 @@ if __name__ == '__main__':
 
     depths = dict()
     node_type_dist = dict()
-
+    gen_src = set()
     for s in samples:
         try:
             tree = parser.parse(bytes(s, 'utf-8'))
             program: minimp.Program | None = minimp.Program.from_tree_sitter(tree)
             d = depth(program)
+            gen_src.add(program.to_source())
             depths[d] = depths.get(d, 0) + 1
             count_node_type(program, node_type_dist)
         except:
@@ -89,6 +90,7 @@ if __name__ == '__main__':
     logs['parse_rate'] = 1 - depths.get(-1, 0) / sum(depths.values())
     if -1 in depths.keys():
         depths.pop(-1)
+    logs['diversity'] = len(gen_src) / sum(depths.values())
     logs['avg_depth'] = sum([d * n for d, n in depths.items()]) / sum(depths.values())
     logs['depth_dist'] = depths
     logs['node_type_dist'] = node_type_dist
